@@ -1,0 +1,56 @@
+name: CI/CD with Ansible
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+
+# Prevent multiple runs piling up for the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run tests (Pull Request)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+      - name: Lancer les tests
+        run: ./gradlew test
+
+  deploy-test:
+    name: Deploy TEST (Pull Request)
+    needs: test
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y ansible
+      - run: ansible-playbook -i ansible/inventory/test.ini ansible/playbook.yml
+
+  deploy-dev:
+    name: Deploy DEV (On push on develop branch)
+    needs: test
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y ansible
+      - run: ansible-playbook -i ansible/inventory/dev.ini ansible/playbook.yml
+
+  deploy-prod:
+    name: Deploy PROD (On push on main branch)
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y ansible
+      - run: ansible-playbook -i ansible/inventory/prod.ini ansible/playbook.yml
