@@ -1,0 +1,27 @@
+- name: Deploy application
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Display environment name
+      debug:
+        msg: "Environment: {{ env_name }}"
+
+    - name: Display application port
+      debug:
+        msg: "Application will run on port {{ app_port }}"
+
+    - name: Display debug mode
+      debug:
+        msg: "Debug mode enabled: {{ debug_mode }}"
+
+    - name: Simulate deployment
+      shell: |
+        echo "Deploying application..."
+        echo "Environment={{ env_name }}"
+        echo "Port={{ app_port }}"
+
+    - name: Prevent deployment if maintenance mode is enabled
+      fail:
+        msg: "Deployment blocked: maintenance mode enabled"
+      when: maintenance_mode | default(false)
