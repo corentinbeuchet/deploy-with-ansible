@@ -266,7 +266,7 @@ concurrency:
 jobs:
   # ---------- CI : exercice 3 ----------
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
@@ -292,7 +292,7 @@ jobs:
   # ---------- Livraison : image Docker ----------
   docker:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Récupérer le livrable testé
@@ -318,30 +318,27 @@ jobs:
     name: Deploy TEST (Pull Request)
     needs: docker
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - run: pipx install --force ansible-core
       - run: ansible-playbook -i ansible/inventory/test.ini ansible/playbook.yml -e image_tag=${{ github.sha }}
 
   deploy-dev:
     name: Deploy DEV (push sur develop)
     needs: docker
     if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - run: pipx install --force ansible-core
       - run: ansible-playbook -i ansible/inventory/dev.ini ansible/playbook.yml -e image_tag=${{ github.sha }}
 
   deploy-prod:
     name: Deploy PROD (push sur main)
     needs: docker
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - run: pipx install --force ansible-core
       - run: ansible-playbook -i ansible/inventory/prod.ini ansible/playbook.yml -e image_tag=${{ github.sha }}
 ```
 
@@ -349,7 +346,7 @@ jobs:
 - `needs:` fixe l'**ordre** : pas d'image si le build échoue, pas de déploiement si le test de fumée échoue.
 - `if:` relie un **événement** à un **environnement**.
 - `image_tag` = le hash du commit : on sait exactement **quelle version** est déployée où.
-- `pipx install --force ansible-core` installe la dernière version (les runners en ont déjà une, parfois plus ancienne). `ansible-core` suffit ici : le playbook n'utilise que des modules intégrés (`ansible.builtin`).
+- Pas d'étape d'installation d'Ansible : il est **préinstallé** sur les runners GitHub `ubuntu-26.04`, comme Docker et Java.
 
 > Si vous avez gardé le job `performance`, ajoutez-le aux `needs` du job `docker` : `needs: [build, performance]`.
 
