@@ -1,5 +1,7 @@
 # 🚀 Exercice 4 – Conteneuriser et déployer sur plusieurs environnements (Docker, Ansible & GitHub Actions)
 
+> 🎯 **Priorités** : les parties 0 à 5 sont l'essentiel, ce que vous devrez savoir refaire seul à l'évaluation finale. Le bonus « Validation humaine avant la prod » est pour aller plus loin.
+
 ## 📚 Contexte
 Cet exercice fait suite aux exercices précédents :
 - Exercice 2 : workflow GitHub sécurisé (CI, protection de branche, revue)
@@ -269,7 +271,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '25'
